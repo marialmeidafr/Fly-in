@@ -67,4 +67,48 @@ class MapParser:
 
     def _parse_zone(self, base_line: str,
                     metadata: Dict[str, str], line_num: int) -> None:
+        parts: list[str] = base_line.split()
+        if len(parts) != 4:
+            raise ValueError(f"Error in line: {line_num}: invalid format")
+        prefix_zone = parts[0]
+        name_zone = parts[1]
+        if '-' in name_zone:
+            raise ValueError(f"Error in line: {line_num}: forbids dashes in zone names")
+        if name_zone in self.zones:
+            raise ValueError(f"Error in line: {line_num}: zone name {name_zone} already exists")
+        try:
+            x = int(parts[2])
+            y = int(parts[3])
+        except ValueError:
+            raise ValueError(f"Error in line: {line_num}: coordinates must be an int")
+        max_drones = metadata.get('max_drones')
+        # qnts drones cabem por turno
+        if max_drones is not None:
+            final_max = int(max_drones)
+        else:
+            if prefix_zone in ('start_hub:', 'end_hub:'):
+                final_max = self.drone_count
+            else:
+                final_max = 1
+        zona_type = metadata.get('zone', 'normal')
+        # tipo da zona
+        if zona_type is not ('normal', 'blocked', 'restricted', 'priority'):
+            raise ValueError(f"Error in line {line_num}: invalid zone {zona_type}")
+        zone = Zone(name=name_zone, x=x, y=y, zona_type=zona_type,
+                    color=metadata.get('color', 'white'), max_drones=final_max)
+        self.zones[name_zone] = zone
+        if prefix_zone == "start_hub:":
+        # defino uma unica entrada e uma unica saida
+            if self.start_hub:
+                raise ValueError(f"Error in line: {line_num}: There can only be one start_hub")
+            self.start_hub = name_zone
+        elif prefix_zone == "end_hub:":
+            if self.end_hub:
+                raise ValueError(f"Error in line: {line_num}: There can only be one end_hub")
+            self.end_hub = name_zone
+    
+    def _parse_connection(self, base_line: str,
+                    metadata: Dict[str, str], line_num: int) -> None:
+        
+        
         
