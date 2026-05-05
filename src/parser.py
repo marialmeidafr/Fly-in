@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Set, Tuple
 from models import Zone, Connection
 import re
 
@@ -10,6 +10,7 @@ class MapParser:
         self.start_hub: Optional[str] = None
         self.end_hub: Optional[str] = None
         self.zones: Dict[str, Zone] = {}
+        self.duplicated_connections: Set[Tuple[str, str]] = set()
         self.connections: List[Connection] = []
     
     def parse(self) -> None:
@@ -33,10 +34,11 @@ class MapParser:
                 clean = line.split('#')[0].strip()
                 if not clean or clean.startswith("drone_count:"):
                     continue
+                self._parse_line(clean, line_num)
+            self._validate_map()
         except Exception as error:
             print(f"Error to open the map: {error}")
             exit(1)
-        self._validate_map() # fazer validate_map
     
     def _parse_line(self, line: str, line_num: int) -> None:
         # identifica se a linha é uma Zona ou uma Conexão.
@@ -92,7 +94,8 @@ class MapParser:
                 final_max = 1
         zona_type = metadata.get('zone', 'normal')
         # tipo da zona
-        if zona_type is not ('normal', 'blocked', 'restricted', 'priority'):
+        valid_types = ('normal', 'blocked', 'restricted', 'priority')
+        if zona_type not in valid_types:
             raise ValueError(f"Error in line {line_num}: invalid zone {zona_type}")
         zone = Zone(name=name_zone, x=x, y=y, zona_type=zona_type,
                     color=metadata.get('color', 'white'), max_drones=final_max)
@@ -109,6 +112,63 @@ class MapParser:
     
     def _parse_connection(self, base_line: str,
                     metadata: Dict[str, str], line_num: int) -> None:
+        parts = base_line.split()
+        if len(parts) != 2:
+            raise ValueError(f"Error in line: {line_num}: invalid format")
+        try:
+            connectors: str = parts[1]
+            zone_1, zone_2 = connectors.split('-')
+        except ValueError:
+            raise ValueError(f"Error on line {line_num}: invalid  connection format")
+        if zone_1 not in self.zones or zone_2 not in self.zones:
+            raise ValueError(f"Error on line {line_num}: connection to unknown zone ({zone_1}or {zone_2})")
+        pair = tuple(sorted([zone_1, zone_2])) # ordenar os nomes para garantir A-B == B-A
+        if pair in self.duplicated_connections:
+            raise ValueError(f"Error on line {line_num}: duplicate connection {zone_1}-{zone_2}")
+        self.duplicated_connections.add(pair)
+        z1 = self.zones[zone_1]
+        z2 = self.zones[zone_2]
+        connection = Connection(
+            zone_1=z1,
+            zone_2=z2,
+            max_link_capacity=int(metadata.get('max_link_capacity', 1))
+        )
+        self.connections.append(connection)
+    
+    
+    def _get_neighbor(self, connection: Connection, current_zone_name: str) -> Optional[str]:
+        """Retorna o nome da zona vizinha numa conexão bidirecional."""
+        if connection.zone_1.name == current_zone_name:
+            return connection.zone_2.name
+        if connection.zone_2.name == current_zone_name:
+            return connection.zone_1.name
+        return None
+    
+    def _has_path(self, start: str, end: str) -> bool:
+        zones_visited = {start}
+        next_zones = [start]
+
+        while next_zones:
+            path = next_zones.pop(0)
         
-        
-        
+            if path == end:
+                return True
+            
+            for connection in self.connections:
+                neighbor = self._get_neighbor(connection, path)
+
+                if neighbor and neighbor not in zones_visited:
+                    if self.zones[neighbor].zone_type != "blocked":
+                        zones_visited.add(neighbor)
+                        next_zones.append(neighbor)
+        return False
+
+    def _validate_map(self) -> None:
+        if self.drone_count <= 0:
+            raise ValueError(f"The number of drones must be a positive number")
+        if not self.start_hub:
+            raise ValueError(f"There must be a starting zone")
+        if not self.end_hub:
+            raise ValueError(f"There must be an end zone")
+        if not self._has_path(self.start_hub, self.end_hub):
+            raise ValueError(f"There must be a path")
