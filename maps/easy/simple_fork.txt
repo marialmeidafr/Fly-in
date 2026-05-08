@@ -1,0 +1,15 @@
+# simple fork (easy) - fork with two paths
+drone_count = 3
+
+start_hub: start 0 0 [color=green]
+hub: junction 1 0[color=yellow max_drones=2]
+hub: first_point 2 1 [color=blue]
+hub: second_point 2 -1 [color=blue]
+end_hub: goal 3 0 [color=red max_drones=3]
+
+connection: start-junction
+connection: junction-first_point
+connection: first_point-second_point
+connection: second_point-goal
+
+# 0,0 - x, y

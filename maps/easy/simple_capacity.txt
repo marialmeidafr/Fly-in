@@ -1,0 +1,4 @@
+# simple capacity (easy) - Basic capacity management
+drone_count = 4
+
+start_hub: start 0 0 
