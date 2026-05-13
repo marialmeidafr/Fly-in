@@ -1,0 +1,20 @@
+# priority path (medium): should we prioritize the path or the cost?
+drone_count: 4
+
+start_hub: start 0 0 [color=green max_drones=4]
+hub: slow_path1 1 -1 [zone=restricted color=purple]
+hub: slow_path2 2 -1 [zone=restricted color=purple]
+hub: slow_path3 3 -1 [zone=restricted color=purple]
+hub: fast_junction 1 0 [zone=priority color=orange max_drones=2]
+hub: fast_path 2 0 [zone=priority color=blue]
+hub: junction 3 0 [color=yellow max_drones=3]
+end_hub: goal 4 0 [color=red max_drones=4]
+
+connection: start-slow_path1
+connection: start-fast_junction
+connection: slow_path1-slow_path2
+connection: slow_path2-slow_path3
+connection: slow_path3-junction
+connection: fast_junction-fast_path
+connection: fast_path-junction
+connection: junction-goal

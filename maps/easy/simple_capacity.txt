@@ -1,4 +1,11 @@
 # simple capacity (easy) - Basic capacity management
 drone_count = 4
 
-start_hub: start 0 0 
+start_hub: start 0 0 [color=green max_drones=4]
+hub: limited_point 1 0 [color=orange max_drones=2]
+hub: wide_point 2 0 [color=blue max_drones=3]
+end_hub: goal 3 0 [color=red max_drones=4]
+
+connection: start-limited_point
+connection: limited_point-wide_point
+connection: wide_point-goal

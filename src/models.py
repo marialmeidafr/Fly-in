@@ -17,9 +17,11 @@ class Zone:
     def __post_init__(self) -> None:
         valid_types = {"normal", "blocked", "restricted", "priority"}
         if self.zone_type not in valid_types:
-            raise ValueError(f"")
+            raise ValueError(f"Zone {self.zone_type} "
+                             "not recognized and therefore invalid")
         if self.max_drones < 1:
-            raise ValueError(f"")
+            raise ValueError(f"max_drones must be positive in the "
+                             f"zone {self.name}")
 
     @property
     def is_full(self) -> bool:
@@ -35,7 +37,14 @@ class Connection:
 
     def __post_init__(self) -> None:
         if self.max_link_capacity < 1:
-            raise ValueError(f"")
+            raise ValueError(f"max_link_capacity must be higher than 1")
+    
+    @property
+    def can_traverse(self) -> bool:
+        return self.traffic_drones < self.max_link_capacity
+
+    def reset_traffic(self) -> None:
+        self.traffic_drones = 0
 
 @dataclass
 class Drone:
