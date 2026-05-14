@@ -47,7 +47,7 @@ class Connection:
         self.traffic_drones = 0
 
     def name(self) -> str:
-        return f"{self.zone_1.name}-{self.zone_2.name}
+        return f"{self.zone_1.name}-{self.zone_2.name}"
 
 @dataclass
 class Drone:
