@@ -37,7 +37,7 @@ class Connection:
 
     def __post_init__(self) -> None:
         if self.max_link_capacity < 1:
-            raise ValueError(f"max_link_capacity must be higher than 1")
+            raise ValueError(f"max_link_capacity must be at least 1")
     
     @property
     def can_traverse(self) -> bool:
@@ -46,6 +46,9 @@ class Connection:
     def reset_traffic(self) -> None:
         self.traffic_drones = 0
 
+    def name(self) -> str:
+        return f"{self.zone_1.name}-{self.zone_2.name}
+
 @dataclass
 class Drone:
     # Cada drone deve ter um identificador único e saber o seu estado (se está numa zona, 
@@ -53,7 +56,7 @@ class Drone:
     drone_id: int
     current_zone: Zone
     path: List[str] = field(default_factory=list)
-    status: str = "ready"
+    status: str = "moving"
     wait_time: int = 0
 
     def has_arrived(self, end_zone: str) -> bool:
@@ -68,7 +71,7 @@ class Drone:
 class World:
     #  Uma classe que contenha todas as zonas e conexões,
     # servindo de base para o algoritmo de procura de caminho
-    drone_count: int
+    nb_drones: int
     zones: Dict[str, Zone]
     connections: List[Connection]
     drones: List[Drone] = field(default_factory=list)
