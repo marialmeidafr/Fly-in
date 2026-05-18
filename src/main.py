@@ -9,12 +9,12 @@ def main() -> None:
    map_path: str = sys.argv[1]
    visual_mode: bool = "--visual" in sys.argv
    try:
-        # 1. Carregar e Validar o Mapa
+            # 1. Load and validate the map
       parser = MapParser(map_path)
       parser.parse()
-        # 2. Iniciar a Simulação
+            # 2. Start the simulation
       # sim = Simulation(parser)
-        # 3. Correr até ao fim
+            # 3. Run until completion
       # sim.run(visual_mode=visual_mode)
 
    except FileNotFoundError:
@@ -31,23 +31,23 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-#mapa = MapParser("mapa.txt").parse()
-#simulacao = Simulation(mapa)
+#map_obj = MapParser("map.txt").parse()
+#simulation = Simulation(map_obj)
 
 #if args.visual:
-    # Só aqui é que o Pygame entra em ação
- #   view = Visualizer(mapa)
-  #  view.run(simulacao)
+    # Pygame only runs here
+ #   view = Visualizer(map_obj)
+  #  view.run(simulation)
 #else:
-    # Modo terminal padrão (obrigatório)
- #   simulacao.run_text_mode()
+    # Default terminal mode (required)
+ #   simulation.run_text_mode()
 
 
 #for drone in all_drones:
-    # 1. Calcula o melhor caminho livre atual
+   # 1. Compute the best currently free path
  #   path = pathfinder.find_path_with_reservations(start, end, 0)
     
-    # 2. BLOQUEIA esses espaços para os drones seguintes
+   # 2. RESERVE these slots for the next drones
   #  for zone_name, time in path:
    #     pathfinder.add_reservation(zone_name, time)
-        # Adicionar também link_reservation entre os passos do path...
+      # Also add link_reservation between path steps...
