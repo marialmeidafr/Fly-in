@@ -6,7 +6,8 @@ PIP = $(VENV_BIN)/pip
 SRC_DIR = src
 MAIN = $(SRC_DIR)/main.py
 
-MAP = maps/easy/01_linear_path.txt 
+# ARGS ?= maps/easy/01_linear_path.txt
+ARGS ?= maps/challenger/01_the_impossible_dream.txt
 
 all: install
 
@@ -15,14 +16,19 @@ $(VENV_BIN)/activate:
 	python3 -m venv $(VENV_DIR)
 
 install: $(VENV_BIN)/activate
-	@echo "📦 Installing dependencies (mypy, flake8)..."
+	@echo "📦 Installing dependencies (mypy, flake8, pygame)..."
 	@$(PIP) install --upgrade pip
 	@$(PIP) install flake8 mypy
+	@$(PIP) install pygame
 	@echo "✅ Setup complete."
 
 run:
 	@echo "🚀 Starting Fly-in..."
 	@$(PYTHON) $(MAIN) $(ARGS)
+
+visual: install
+	@echo "🎮 Starting Fly-in with Visual Mode..."
+	@$(PYTHON) $(MAIN) $(ARGS) --visual
 
 lint:
 	@echo "🔍 Checking style (flake8)..."

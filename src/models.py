@@ -2,30 +2,35 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 
 
-@dataclass # ajuda a criar classes, nao preciso fazer o init, ele ja faz automatico
-class Zone:
-    # Deve armazenar o tipo (normal, priority, etc.), 
-    # as coordenadas e, crucialmente, a sua capacidade atual (max_drones)
+@dataclass  # ajuda a criar classes, nao preciso fazer o init
+class Zone:  # ele ja faz automatico
+    # Deve armazenar o tipo (normal, priority, etc.),
+    # as coordenadas e, crucialmente, a sua capacidade atual
+    # (max_drones)
     name: str
     x: int
     y: int
     max_drones: int = 1
     zone_type: str = "normal"
     color: Optional[str] = None
-    drones_presents: List[int] = field(default_factory=list) # evta que todos os obejtos da classe
-                                                            # compartilhem a mesma lista
+    drones_presents: List[int] = field(default_factory=list)
+    # avoids all class objects sharing the same list
+
     def __post_init__(self) -> None:
         valid_types = {"normal", "blocked", "restricted", "priority"}
         if self.zone_type not in valid_types:
-            raise ValueError(f"Zone {self.zone_type} "
-                             "not recognized and therefore invalid")
+            raise ValueError(
+                f"Zone {self.zone_type} not recognized"
+            )
         if self.max_drones < 1:
-            raise ValueError(f"max_drones must be positive in the "
-                             f"zone {self.name}")
+            raise ValueError(
+                f"max_drones must be positive in zone {self.name}"
+            )
 
     @property
     def is_full(self) -> bool:
         return len(self.drones_presents) >= self.max_drones
+
 
 @dataclass
 class Connection:
@@ -37,8 +42,10 @@ class Connection:
 
     def __post_init__(self) -> None:
         if self.max_link_capacity < 1:
-            raise ValueError(f"max_link_capacity must be at least 1")
-    
+            raise ValueError(
+                "max_link_capacity must be at least 1"
+            )
+
     @property
     def can_traverse(self) -> bool:
         return self.traffic_drones < self.max_link_capacity
@@ -49,10 +56,12 @@ class Connection:
     def name(self) -> str:
         return f"{self.zone_1.name}-{self.zone_2.name}"
 
+
 @dataclass
 class Drone:
-    # Cada drone deve ter um identificador único e saber o seu estado (se está numa zona, 
-    # numa ligação para uma zona restrita ou se já chegou ao destino)
+    # Cada drone deve ter um identificador único e saber o seu estado
+    # (se está numa zona, numa ligação para uma zona restrita ou
+    # se já chegou ao destino)
     drone_id: int
     current_zone: Zone
     path: List[str] = field(default_factory=list)
@@ -61,15 +70,16 @@ class Drone:
 
     def has_arrived(self, end_zone: str) -> bool:
         return self.current_zone.name == end_zone
-    
+
     def set_path(self, new_path: List[str]) -> None:
         self.path = new_path
         if self.path and self.path[0] == self.current_zone.name:
             self.path.pop(0)
 
+
 @dataclass
 class World:
-    #  Uma classe que contenha todas as zonas e conexões,
+    # Uma classe que contenha todas as zonas e conexões,
     # servindo de base para o algoritmo de procura de caminho
     nb_drones: int
     zones: Dict[str, Zone]
