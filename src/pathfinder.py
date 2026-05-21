@@ -32,7 +32,8 @@ class PathFinder:
                 connection.zone_1.name)
         return graph
 
-    def _get_move_cost(self, zone_obj: Zone, is_waiting: bool = False) -> Optional[int]:
+    def _get_move_cost(self, zone_obj: Zone,
+                       is_waiting: bool = False) -> Optional[int]:
         if is_waiting:
             return 1
         if zone_obj.zone_type == "blocked":
@@ -67,7 +68,8 @@ class PathFinder:
 
     def _init_link_capacities(self) -> None:
         for connection in self.connections:
-            key = self._get_link_key(connection.zone_1.name, connection.zone_2.name)
+            key = self._get_link_key(connection.zone_1.name,
+                                     connection.zone_2.name)
             self.link_capacities[key] = connection.max_link_capacity
 
     def add_reservation(self, zone_name: str, time: int) -> None:
@@ -79,7 +81,8 @@ class PathFinder:
     def add_link_reservation(self, z1: str, z2: str, time: int) -> None:
         key = self._get_link_key(z1, z2)
         full_key = (key[0], key[1], time)
-        self.link_reservations[full_key] = self.link_reservations.get(full_key, 0) + 1
+        self.link_reservations[full_key] = \
+            self.link_reservations.get(full_key, 0) + 1
 
     def find_path_with_reservations(
             self, start: str, end: str,

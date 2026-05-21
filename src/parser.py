@@ -47,14 +47,14 @@ class MapParser:
         # identifica se a linha é uma Zona ou uma Conexão.
         metadata_filter = re.search(r'\[(.*?)\]', line)
         metadata_str = metadata_filter.group(1) if metadata_filter else ""
-        metadata_dict = self._parse_metadata(metadata_str)  # parse metadata
+        metadata_dict = self._parse_metadata(metadata_str)
         base_line = re.sub(r'\s*\[.*?\]\s*', '', line).strip()
         if (base_line.startswith("start_hub:") or
                 base_line.startswith("end_hub:") or
                 base_line.startswith("hub:")):
-            self._parse_zone(base_line, metadata_dict, line_num)  # parse zone
+            self._parse_zone(base_line, metadata_dict, line_num)
         elif base_line.startswith("connection:"):
-            self._parse_connection(base_line, metadata_dict, line_num)  # parse connection
+            self._parse_connection(base_line, metadata_dict, line_num)
         else:
             raise ValueError(f"Unknown syntax on line: {line_num}: {line}")
 

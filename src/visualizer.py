@@ -1,56 +1,55 @@
 import pygame
-import sys
 from models import Zone, Drone, Connection
-from typing import List, Dict
+from typing import List, Dict, Optional
+
 
 class Visualizer:
-    def __init__(self, zones: Dict[str, Zone], width: int = 1200, height: int = 800):
+    def __init__(self, zones: Dict[str, Zone], width: int = 1200,
+                 height: int = 800):
         pygame.init()
         pygame.display.set_caption("Fly-in")
         # Cores Profissionais
         self.CLR_BG = (10, 10, 15)
-        self.CLR_LINE = (40, 45, 60)        
+        self.CLR_LINE = (40, 45, 60)
         self.CLR_CONN_GRAY = (140, 140, 140)
-        self.CLR_TILE_PRIO = (135, 206, 250)  
-        self.CLR_TILE_RESTR = (150, 50, 50) 
+        self.CLR_TILE_PRIO = (135, 206, 250)
+        self.CLR_TILE_RESTR = (150, 50, 50)
         self.CLR_TILE_NORMAL = (60, 179, 113)
-        self.CLR_HUB = (255, 215, 0) # AMRELO IGUAL
-        
+        self.CLR_HUB = (255, 215, 0)
+
         self.screen = pygame.display.set_mode((width, height))
-        
+
+        self.drone_img: Optional["pygame.surface.Surface"] = None
         try:
-            # Garante que a imagem está em assets/drone.png
-            self.drone_img = pygame.image.load("assets/drone2.png").convert_alpha()
-            self.drone_img = pygame.transform.scale(self.drone_img, (50, 50))
-        except:
+            img = pygame.image.load("assets/drone2.png").convert_alpha()
+            img = pygame.transform.scale(img, (50, 50))
+            self.drone_img = img
+        except (pygame.error, FileNotFoundError, OSError):
             self.drone_img = None
-            
         self.font_id = pygame.font.SysFont("Arial", 14, bold=True)
         self.font_hub = pygame.font.SysFont("Arial", 18, bold=True)
         self.font_turn = pygame.font.SysFont("Arial", 20, bold=True)
         self.font_legend = pygame.font.SysFont("Arial", 13, bold=True)
-        
+
         self.zones = zones
         self._calculate_scaling()
-        
-        # No smoothing: drones appear instantly at their zone centers
-        # Cores para traçar o caminho planeado de cada drone
+
         self.drone_colors = [
-            (255, 99, 71),   # Tomato
-            (30, 144, 255),  # DodgerBlue
-            (60, 179, 113),  # MediumSeaGreen
-            (238, 130, 238), # Violet
-            (255, 215, 0),   # Gold
-            (255, 105, 180), # HotPink
+            (255, 99, 71),
+            (30, 144, 255),
+            (60, 179, 113),
+            (238, 130, 238),
+            (255, 215, 0),
+            (255, 105, 180),
         ]
         self.clock = pygame.time.Clock()
 
-    def _calculate_scaling(self):
+    def _calculate_scaling(self) -> None:
         all_x = [z.x for z in self.zones.values()]
         all_y = [z.y for z in self.zones.values()]
         self.min_x, self.max_x = min(all_x), max(all_x)
         self.min_y, self.max_y = min(all_y), max(all_y)
-        self.pad = 120 
+        self.pad = 120
 
     def _scale(self, x: int, y: int) -> tuple[int, int]:
         w, h = self.screen.get_size()
@@ -88,14 +87,18 @@ class Visualizer:
             self.screen.blit(text, (x + 40, line_y))
             line_y += 24
 
-        pygame.draw.line(self.screen, self.CLR_CONN_GRAY, (x + 14, line_y + 10), (x + 42, line_y + 10), 3)
-        conn_text = self.font_legend.render("CONNECTION", True, (255, 255, 255))
+        pygame.draw.line(self.screen, self.CLR_CONN_GRAY,
+                         (x + 14, line_y + 10), (x + 42, line_y + 10), 3)
+        conn_text = self.font_legend.render(
+            "CONNECTION", True, (255, 255, 255))
         self.screen.blit(conn_text, (x + 50, line_y + 2))
 
-    def draw_frame(self, drones: List[Drone], connections: List[Connection], turn: int, start_node: str, end_node: str):
+    def draw_frame(self, drones: List[Drone], connections: List[Connection],
+                   turn: int, start_node: str, end_node: str) -> None:
         self.screen.fill(self.CLR_BG)
 
-        turn_label = self.font_turn.render(f"TURN {turn}", True, (255, 255, 255))
+        turn_label = self.font_turn.render(f"TURN {turn}",
+                                           True, (255, 255, 255))
         self.screen.blit(turn_label, (20, 18))
 
         # 1. DESENHAR LINHAS (O Caminho)
@@ -109,19 +112,20 @@ class Visualizer:
                 key = tuple(sorted((a, b)))
                 used_edges.add(key)
 
-        # Desenhar todas as conexões: se NÃO usadas -> linha branca mais grossa;
-        # se usadas -> linha discreta (CL TONE) e o caminho planeado será desenhado por cima.
+        # Desenhar as conexões: se NÃO usadas -> linha branca mais grossa;
+        # se usadas -> caminho planeado será desenhado por cima
         for conn in connections:
             z1_name = conn.zone_1.name
             z2_name = conn.zone_2.name
-            # Skip connections if neither endpoint has a visible "tile" (start/end/priority/restricted)
             z1 = self.zones.get(z1_name)
             z2 = self.zones.get(z2_name)
             if not z1 or not z2:
                 continue
             visible_types = {"restricted", "priority", "normal"}
-            z1_has_tile = (z1.zone_type in visible_types) or (z1_name == start_node) or (z1_name == end_node)
-            z2_has_tile = (z2.zone_type in visible_types) or (z2_name == start_node) or (z2_name == end_node)
+            z1_has_tile = (z1.zone_type in visible_types) or \
+                (z1_name == start_node) or (z1_name == end_node)
+            z2_has_tile = (z2.zone_type in visible_types) or \
+                (z2_name == start_node) or (z2_name == end_node)
             if not (z1_has_tile or z2_has_tile):
                 # neither endpoint has a drawn square -> skip this connection
                 continue
@@ -130,10 +134,8 @@ class Visualizer:
             p1 = self._scale(z1.x, z1.y)
             p2 = self._scale(z2.x, z2.y)
             if key in used_edges:
-                # used connection: draw subtle thin gray line (will be emphasized by planned path)
                 pygame.draw.line(self.screen, self.CLR_CONN_GRAY, p1, p2, 2)
             else:
-                # unused connection: draw thicker gray line for subtle background
                 pygame.draw.line(self.screen, self.CLR_CONN_GRAY, p1, p2, 5)
 
         # Desenhar o caminho planeado por cada drone (linha colorida, por cima)
@@ -141,7 +143,8 @@ class Visualizer:
             planned = [drone.current_zone.name] + list(drone.path)
             if len(planned) < 2:
                 continue
-            color = self.drone_colors[(drone.drone_id - 1) % len(self.drone_colors)]
+            color = self.drone_colors[
+                (drone.drone_id - 1) % len(self.drone_colors)]
             for i in range(len(planned) - 1):
                 a = self.zones.get(planned[i])
                 b = self.zones.get(planned[i + 1])
@@ -154,7 +157,7 @@ class Visualizer:
         # 2. ZONAS (Apenas START, END e Especiais)
         for name, zone in self.zones.items():
             pos = self._scale(zone.x, zone.y)
-            
+
             # Start e End IGUAIS (Amarelo)
             if name == start_node or name == end_node:
                 rect = pygame.Rect(0, 0, 32, 32)
@@ -163,10 +166,8 @@ class Visualizer:
                 txt = "START" if name == start_node else "END"
                 lbl = self.font_hub.render(txt, True, self.CLR_HUB)
 
-                lbl_react = lbl.get_rect(centerx=pos[0], top=pos[1] + 25)
+                self.screen.blit(lbl, lbl.get_rect(centerx=pos[0], top=pos[1] + 25))
 
-                self.screen.blit(lbl, lbl_react)
-            
             # Zonas de Custo/Risco e Normais (Quadrados)
             elif zone.zone_type == "restricted":
                 rect = pygame.Rect(0, 0, 28, 28)
@@ -187,14 +188,17 @@ class Visualizer:
             draw_pos = self._scale(drone.current_zone.x, drone.current_zone.y)
 
             if self.drone_img:
-                rect = self.drone_img.get_rect(center=(int(draw_pos[0]), int(draw_pos[1])))
-                self.screen.blit(self.drone_img, rect)
+                img_rect = self.drone_img.get_rect(center=(int(draw_pos[0]),
+                                                           int(draw_pos[1])))
+                self.screen.blit(self.drone_img, img_rect)
 
             if drone.current_zone.name not in (start_node, end_node):
-                id_txt = self.font_id.render(f"D{drone.drone_id}", True, (255, 255, 255))
-                self.screen.blit(id_txt, (int(draw_pos[0]) - 10, int(draw_pos[1]) - 55))
+                id_txt = self.font_id.render(f"D{drone.drone_id}",
+                                             True, (255, 255, 255))
+                self.screen.blit(id_txt, (
+                    int(draw_pos[0]) - 10, int(draw_pos[1]) - 55))
 
         self._draw_legend()
 
         pygame.display.flip()
-        self.clock.tick(3) # 60 FPS para o movimento não ser brusco
+        self.clock.tick(3)

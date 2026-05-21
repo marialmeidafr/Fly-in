@@ -1,7 +1,6 @@
 import sys
 import pygame
 from typing import List, Dict, Optional
-
 from models import Drone, Zone, Connection
 from parser import MapParser
 from pathfinder import PathFinder
@@ -47,12 +46,14 @@ class Simulation:
             for time in range(t_start + 1, t_end + 1):
                 self.pathfinder.add_reservation(current_zone, time)
                 if not is_waiting:
-                    self.pathfinder.add_link_reservation(previous_zone, current_zone, time)
+                    self.pathfinder.add_link_reservation(previous_zone,
+                                                         current_zone, time)
 
     def run(self, visualizer: Optional[Visualizer] = None) -> None:
         # executa a simulacao turno a turno
         print("--- Flying ---")
-        while not all(drone.has_arrived(self.end_hub) for drone in self.drones):
+        while not all(drone.has_arrived
+                      (self.end_hub) for drone in self.drones):
             self.turn += 1
             moves_this_turn: List[str] = []
 
@@ -85,7 +86,8 @@ class Simulation:
         if drone.wait_time > 0:
             drone.wait_time -= 1
             if drone.wait_time == 0:
-                move_this_turn.append(f"D{drone.drone_id}-{drone.current_zone.name}")
+                move_this_turn.append(f"D{drone.drone_id}-"
+                                      f"{drone.current_zone.name}")
             return
 
         if not drone.path:
