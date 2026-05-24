@@ -7,7 +7,7 @@ class Visualizer:
     def __init__(self, zones: Dict[str, Zone],
                  width: int = 1200, height: int = 800):
         pygame.init()
-        pygame.display.set_caption("42 Fly-in: Cozy Fleet Command")
+        pygame.display.set_caption("42_Fly-in")
 
         # --- PALETA DE CORES DO TEU ESBOÇO ---
         self.CLR_BG = (255, 204, 204)
@@ -54,7 +54,7 @@ class Visualizer:
         all_y = [z.y for z in self.zones.values()]
         self.min_x, self.max_x = min(all_x), max(all_x)
         self.min_y, self.max_y = min(all_y), max(all_y)
-        self.pad = 150
+        self.pad = 50
 
     def _scale(self, x: int, y: int) -> tuple[int, int]:
         w, h = self.screen.get_size()
@@ -165,4 +165,4 @@ class Visualizer:
                 self.screen.blit(id_txt, id_rect)
 
         pygame.display.flip()
-        self.clock.tick(5)
+        self.clock.tick(2)

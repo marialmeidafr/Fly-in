@@ -28,6 +28,12 @@ This installs:
 - `mypy`
 
 ### Execution
+First install the local environment:
+
+```bash
+make install
+```
+
 Run the simulation in text mode:
 
 ```bash
@@ -43,8 +49,8 @@ make visual ARGS=maps/easy/01_linear_path.txt
 You can also run the entry point directly:
 
 ```bash
-python3 src/main.py maps/easy/01_linear_path.txt
-python3 src/main.py maps/easy/01_linear_path.txt --visual
+./venv/bin/python src/main.py maps/easy/01_linear_path.txt
+./venv/bin/python src/main.py maps/easy/01_linear_path.txt --visual
 ```
 
 ### Useful commands
