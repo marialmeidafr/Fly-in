@@ -1,11 +1,23 @@
 import pygame
 from models import Zone, Drone, Connection
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 
 class Visualizer:
+    """Simple Pygame-based visualizer for the Fly-in simulation.
+
+    Responsible for scaling map coordinates to screen pixels and drawing
+    zones, connections and drone icons on a Pygame surface.
+    """
     def __init__(self, zones: Dict[str, Zone],
                  width: int = 1200, height: int = 800):
+        """Initialize the visualizer and Pygame resources.
+
+        Args:
+            zones: Mapping of zone names to `Zone` objects used for layout.
+            width: Desired width of the Pygame window in pixels.
+            height: Desired height of the Pygame window in pixels.
+        """
         pygame.init()
         pygame.display.set_caption("42_Fly-in")
 
@@ -22,23 +34,21 @@ class Visualizer:
 
         self.screen = pygame.display.set_mode((width, height))
 
+        self.drone_img: Optional['pygame.surface.Surface'] = None
+        self.start_img: Optional['pygame.surface.Surface'] = None
+        self.end_img: Optional['pygame.surface.Surface'] = None
+
         try:
-            self.drone_img = pygame.image.load(
-                "assets/drone.png").convert_alpha()
-            self.drone_img = pygame.transform.scale(self.drone_img, (60, 60))
+            _d = pygame.image.load("assets/drone.png").convert_alpha()
+            self.drone_img = pygame.transform.scale(_d, (60, 60))
 
-            self.start_img = pygame.image.load(
-                "assets/start.png").convert_alpha()
-            self.start_img = pygame.transform.scale(self.start_img, (120, 120))
+            _s = pygame.image.load("assets/start.png").convert_alpha()
+            self.start_img = pygame.transform.scale(_s, (120, 120))
 
-            self.end_img = pygame.image.load(
-                "assets/end.png").convert_alpha()
-            self.end_img = pygame.transform.scale(self.end_img, (120, 120))
+            _e = pygame.image.load("assets/end.png").convert_alpha()
+            self.end_img = pygame.transform.scale(_e, (120, 120))
         except Exception:
             print("No images")
-            self.drone_img = None
-            self.start_img = None
-            self.end_img = None
 
         self.font_id = pygame.font.SysFont("Arial", 14, bold=True)
         self.font_hub = pygame.font.SysFont("Arial", 22, bold=True)
@@ -50,13 +60,27 @@ class Visualizer:
         self.clock = pygame.time.Clock()
 
     def _calculate_scaling(self) -> None:
+        """Compute min/max coordinates and padding used by `_scale`.
+
+        This prepares internal values for mapping zone coordinates to
+        screen pixel positions.
+        """
         all_x = [z.x for z in self.zones.values()]
         all_y = [z.y for z in self.zones.values()]
         self.min_x, self.max_x = min(all_x), max(all_x)
         self.min_y, self.max_y = min(all_y), max(all_y)
-        self.pad = 50
+        self.pad = 70
 
     def _scale(self, x: int, y: int) -> tuple[int, int]:
+        """Scale a map coordinate (x, y) into screen pixel coordinates.
+
+        Args:
+            x: Zone x coordinate.
+            y: Zone y coordinate.
+
+        Returns:
+            Tuple[int,int]: Pixel coordinates (x, y) on the Pygame surface.
+        """
         w, h = self.screen.get_size()
         rx = (self.max_x - self.min_x) or 1
         ry = (self.max_y - self.min_y) or 1
@@ -68,7 +92,7 @@ class Visualizer:
         """Desenha a legenda no canto inferior esquerdo como no teu esboço."""
         start_x, start_y = 40, self.screen.get_height() - 140
         items = [
-            (self.CLR_STD, "Standard"),
+            (self.CLR_STD, "Normal"),
             (self.CLR_PRIO, "Priority"),
             (self.CLR_RESTR, "Restricted")
         ]
@@ -76,9 +100,9 @@ class Visualizer:
         for i, (color, text) in enumerate(items):
             y_pos = start_y + (i * 35)
             # Quadrado da legenda
-            rect = pygame.Rect(start_x, y_pos, 25, 25)
-            pygame.draw.rect(self.screen, color, rect, 0, 5)
-            pygame.draw.rect(self.screen, self.CLR_BORDER, rect, 2, 5)
+            legend_rect = pygame.Rect(start_x, y_pos, 25, 25)
+            pygame.draw.rect(self.screen, color, legend_rect, 0, 5)
+            pygame.draw.rect(self.screen, self.CLR_BORDER, legend_rect, 2, 5)
             # Texto da legenda
             lbl = self.font_legend.render(text, True, self.CLR_TEXT)
             self.screen.blit(lbl, (start_x + 35, y_pos))
@@ -92,6 +116,15 @@ class Visualizer:
     def draw_frame(self, drones: List[Drone],
                    connections: List[Connection], turn: int,
                    start_node: str, end_node: str) -> None:
+        """Render a full simulation frame to the Pygame window.
+
+        Args:
+            drones: List of `Drone` objects to draw.
+            connections: List of `Connection` objects (links).
+            turn: Current turn number to display.
+            start_node: Name of the start hub zone.
+            end_node: Name of the end hub zone.
+        """
         self.screen.fill(self.CLR_BG)
 
         # 1. DESENHAR LINHAS (Estilo "Tubo" com borda preta)
@@ -118,10 +151,10 @@ class Visualizer:
                 elif zone.zone_type == "priority":
                     color = self.CLR_PRIO
 
-                rect = pygame.Rect(0, 0, 45, 45)
-                rect.center = pos
-                pygame.draw.rect(self.screen, color, rect, 0, 8)
-                pygame.draw.rect(self.screen, self.CLR_BORDER, rect, 3, 8)
+                zone_rect = pygame.Rect(0, 0, 45, 45)
+                zone_rect.center = pos
+                pygame.draw.rect(self.screen, color, zone_rect, 0, 8)
+                pygame.draw.rect(self.screen, self.CLR_BORDER, zone_rect, 3, 8)
 
             if is_start or is_end:
                 img = self.start_img if is_start else self.end_img
@@ -152,8 +185,8 @@ class Visualizer:
                 curr_pos = (curr_pos[0], curr_pos[1] - 20)
 
             if self.drone_img:
-                rect = self.drone_img.get_rect(center=curr_pos)
-                self.screen.blit(self.drone_img, rect)
+                drone_rect = self.drone_img.get_rect(center=curr_pos)
+                self.screen.blit(self.drone_img, drone_rect)
             else:
                 pygame.draw.circle(self.screen, (40, 40, 40), curr_pos, 15)
 

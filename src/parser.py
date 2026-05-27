@@ -4,8 +4,20 @@ import re
 
 
 class MapParser:
+    """Parse a textual map file into zones and connections.
+
+    The parser reads a simple domain-specific map format that describes
+    zones (including start/end hubs) and connections between them. After
+    parsing, the `zones`, `connections`, `start_hub`, `end_hub` and
+    `nb_drones` attributes are populated and ready to be used by the
+    simulation.
+    """
     def __init__(self,  file_path: str) -> None:
-        """Initialize the parser with a map file path and empty state."""
+        """Initialize the parser with a map file path and empty state.
+
+        Args:
+            file_path: Path to the map file to parse.
+        """
         self.file_path = file_path
         self.nb_drones: int = 0
         self.start_hub: Optional[str] = None

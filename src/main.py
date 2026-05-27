@@ -4,6 +4,18 @@ from simulation import Simulation
 
 
 def main() -> None:
+    """Entry point for the Fly-in simulation CLI.
+
+    Parses command-line arguments, loads the specified map file,
+    initializes the simulation and runs it. When the optional
+    `--visual` flag is provided, a graphical `Visualizer` is used.
+
+    Args:
+        None. Uses `sys.argv` for input.
+
+    Returns:
+        None. Exits the program on error with a non-zero status.
+    """
     # 1. Verificação de argumentos
     if len(sys.argv) < 2:
         print("Usage: python3 src/main.py <map_path> [--visual]")
