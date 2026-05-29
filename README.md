@@ -1,6 +1,13 @@
-*This project has been created as part of the 42 curriculum by mariaalm.*
 
-# Fly-in
+<div align="center">
+  <h1 align="center">Fly-in 🚁 </h1>
+</div>
+
+<p align="center">
+  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWgwcWl4dXpqejhudmV4bnMzZGcwemNiMXVmMjNlbXMzc3N3Z29uNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jCXruLiF9zoofTkmpo/giphy.gif" width="300" alt="fun gif"/>
+</p>
+
+*This project has been created as part of the 42 curriculum by mariaalm.*
 
 ## Description
 Fly-in is a route-planning and simulation project where a fleet of drones must travel from a start hub to an end hub through a network of zones and connections.
