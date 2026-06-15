@@ -129,22 +129,6 @@ class Visualizer:
                     else:
                         self._frozen_state = None
 
-    def draw_legend(self) -> None:
-        start_x, start_y = 40, self.screen.get_height() - 140
-        items = [
-            (self.CLR_STD, "Normal"),
-            (self.CLR_PRIO, "Priority"),
-            (self.CLR_RESTR, "Restricted")
-        ]
-
-        for i, (color, text) in enumerate(items):
-            y_pos = start_y + (i * 35)
-            legend_rect = pygame.Rect(start_x, y_pos, 25, 25)
-            pygame.draw.rect(self.screen, color, legend_rect, 0, 5)
-            pygame.draw.rect(self.screen, self.CLR_BORDER, legend_rect, 2, 5)
-            lbl = self.font_legend.render(text, True, self.CLR_TEXT)
-            self.screen.blit(lbl, (start_x + 35, y_pos))
-
     def draw_frame(self, drones: List[Drone],
                    connections: List[Connection], turn: int,
                    start_node: str, end_node: str) -> None:
@@ -180,18 +164,41 @@ class Visualizer:
             pygame.draw.line(self.screen, self.CLR_CONN_BORDER, p1, p2, 10)
             pygame.draw.line(self.screen, self.CLR_CONN_INNER, p1, p2, 6)
 
+        color_map = {
+            "green": (34, 177, 76),
+            "blue": (121, 188, 229),
+            "red":   (251, 133, 135),
+            "yellow": (222, 209, 114),
+            "orange": (221, 124, 65),
+            "purple": (158, 105, 183),
+            "black": (96, 96, 130),
+            "brown": (120, 72, 40),
+            "maroon": (128, 0, 0),
+            "gold": (197, 184, 85),
+            "darkred": (167, 85, 85),
+            "violet": (203, 133, 226),
+            "crimson": (213, 97, 121),
+            "cyan": (103, 191, 177),
+            "lime": (136, 200, 112),
+            "magenta": (183, 56, 56),
+            "rainbow": (255, 255, 255),
+            }
+
         for name, zone in self.zones.items():
             pos = self._scale(zone.x, zone.y)
             is_start = (name == render_start)
             is_end = (name == render_end)
 
-            if not is_start and not is_end:
+            zone_color_str = getattr(zone, "color", "white")
+            color = color_map.get(zone_color_str)
+
+            if color is None:
                 color = self.CLR_STD
                 if getattr(zone, "zone_type", "") == "restricted":
                     color = self.CLR_RESTR
                 elif getattr(zone, "zone_type", "") == "priority":
                     color = self.CLR_PRIO
-
+            if not is_start and not is_end:
                 zone_rect = pygame.Rect(0, 0, 45, 45)
                 zone_rect.center = pos
                 pygame.draw.rect(self.screen, color, zone_rect, 0, 8)
@@ -203,7 +210,7 @@ class Visualizer:
                     img_rect = img.get_rect(center=pos)
                     self.screen.blit(img, img_rect)
                 else:
-                    pygame.draw.circle(self.screen, (200, 200, 220), pos, 30)
+                    pygame.draw.circle(self.screen, color, pos, 30)
                     pygame.draw.circle(
                         self.screen, self.CLR_BORDER, pos, 30, 3)
 
@@ -213,7 +220,6 @@ class Visualizer:
                 lbl_rect = lbl.get_rect(centerx=pos[0], top=label_top)
                 self.screen.blit(lbl, lbl_rect)
 
-        self.draw_legend()
         turn_txt = self.font_turn.render(
             f"TURN: {render_turn}", True, self.CLR_BLACK)
         self.screen.blit(turn_txt, (40, 20))

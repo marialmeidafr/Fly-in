@@ -18,13 +18,11 @@ class PathFinder:
         self.connections = connections
         self.start_hub = start_hub
         self.end_hub = end_hub
-        self.map: dict[str, List[str]] = self._build_map()
-        # evita colisoes
+        self.map: Dict[str, List[str]] = self._build_map()
         self.reservations: Dict[Tuple[str, int], int] = {}
         self.link_capacities: Dict[Tuple[str, str], int] = {}
         self.link_reservations: Dict[Tuple[str, str, int], int] = {}
         self._init_link_capacities()
-        # shortcuts based on true time distance
         self.strategic_map: Dict[str, int] = (
             self._calculate_the_strategic_map(end_hub))
 
@@ -77,7 +75,6 @@ class PathFinder:
             if current_dist > distances.get(current_node, float('inf')):
                 continue
             for neighbor in self.map.get(current_node, []):
-                # o custo se baseia em que zona ele entra
                 target_zone = self.zones[current_node]
                 move_cost = self._get_move_cost(target_zone)
                 if move_cost is None:
@@ -165,8 +162,6 @@ class PathFinder:
 
             if curr_name == end:
                 return path
-
-            # movimentos possíveis: vizinhos + ficar parado(esperando)
             possible_moves = self.map.get(curr_name, []) + [curr_name]
 
             for next_name in possible_moves:
@@ -177,23 +172,18 @@ class PathFinder:
                 if move_cost is None:
                     continue
                 arrival_time = current_time + move_cost
-
-                # verificação de Conflitos (Capacidade de Zona e Link)
                 conflict = False
                 link_key = (
                     self._get_link_key(curr_name, next_name)
                     if not is_waiting else None)
 
                 for time in range(current_time + 1, arrival_time + 1):
-                    # capacidade da Zona (exceto Start/End)
                     if next_name not in (self.start_hub, self.end_hub):
                         reserved = self.reservations.get(
                             (next_name, time), 0)
                         if reserved >= next_zone.max_drones:
                             conflict = True
                             break
-
-                    # capacidade da Ligação (Link)
                     if link_key:
                         max_cap = self.link_capacities.get(
                             link_key, 1)

@@ -1,5 +1,4 @@
 [tool.mypy]
-# This block tells MyPy to be very strict (which 42 loves)
 python_version = "3.10"
 strict = true
 ignore_missing_imports = true
@@ -7,6 +6,6 @@ warn_unused_configs = true
 show_error_codes = true
 
 [tool.flake8]
-# Flake8 settings (some plugins read this, or use a separate .flake8 file)
+# Flake8 settings
 max-line-length = 88
 extend-ignore = "E203"

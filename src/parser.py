@@ -1,6 +1,7 @@
 from typing import Optional, Dict, List, Set, Tuple
 from models import Zone, Connection
 import re
+import sys
 
 
 class MapParser:
@@ -32,7 +33,6 @@ class MapParser:
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             lines = content.splitlines()
-            # encontrar quantidade de drones
             for line in lines:
                 clean = line.split('#')[0].strip()
                 if clean.startswith("nb_drones:"):
@@ -43,20 +43,21 @@ class MapParser:
                         raise ValueError("Invalid nb_drones format.")
             if self.nb_drones <= 0:
                 raise ValueError("nb_drones missing or invalid")
-            # processa zonas e conexoes
             for line_num, line in enumerate(lines, 1):
                 clean = line.split('#')[0].strip()
                 if not clean or clean.startswith("nb_drones:"):
                     continue
                 self._parse_line(clean, line_num)
             self._validate_map()
-        except Exception as error:
-            print(f"Error to open the map: {error}")
-            exit(1)
+        except FileNotFoundError:
+            print("Error: Map file not found", file=sys.stderr)
+            sys.exit(1)
+        except ValueError as e:
+            print(f"Error: Invalid map format - {e}", file=sys.stderr)
+            sys.exit(1)
 
     def _parse_line(self, line: str, line_num: int) -> None:
         """Parse one line of input as either a zone or a connection."""
-        # identifica se a linha é uma Zona ou uma Conexão.
         metadata_filter = re.search(r'\[(.*?)\]', line)
         metadata_str = metadata_filter.group(1) if metadata_filter else ""
         metadata_dict = self._parse_metadata(metadata_str)
@@ -72,7 +73,6 @@ class MapParser:
 
     def _parse_metadata(self, metadata_str: str) -> Dict[str, str]:
         """Convert a metadata string into a dictionary."""
-        # transforma uma str num dict
         if not metadata_str:
             return {}
         meta_dict: Dict[str, str] = {}
@@ -89,33 +89,25 @@ class MapParser:
         if len(parts) != 4:
             raise ValueError(f"Error in line: {line_num}: invalid format")
 
-        prefix_zone = parts[0]
-        name_zone = parts[1]
-
-        # 1. Validações de nome e duplicados
-        if '-' in name_zone:
+        zone_prefix = parts[0]
+        zone_name = parts[1]
+        if '-' in zone_name:
             msg = f"Error in line: {line_num}: forbids dashes"
             raise ValueError(msg)
-        if name_zone in self.zones:
-            msg = f"Error in line: {line_num}: zone {name_zone} exists"
+        if zone_name in self.zones:
+            msg = f"Error in line: {line_num}: zone {zone_name} exists"
             raise ValueError(msg)
-
-        # 2. Validação de coordenadas
         try:
             x = int(parts[2])
             y = int(parts[3])
         except ValueError:
             msg = f"Error in line: {line_num}: coords must be int"
             raise ValueError(msg)
-
-        # 3. Definição da capacidade (final_max)
-        # Padrão: Hubs têm cap total, zonas comuns têm 1
-        if prefix_zone in ('start_hub:', 'end_hub:'):
+        if zone_prefix in ('start_hub:', 'end_hub:'):
             final_max = self.nb_drones
         else:
             final_max = 1
 
-        # Se houver 'max_drones' no metadata, sobrescreve padrão
         max_drones_str = metadata.get('max_drones')
         if max_drones_str is not None:
             try:
@@ -128,36 +120,33 @@ class MapParser:
             msg = f"Error in line {line_num}: max_drones must be positive"
             raise ValueError(msg)
 
-        # 4. Definição do tipo de zona
-        zona_type = metadata.get('zone', 'normal')
+        zone_type = metadata.get('zone', 'normal')
         valid_types = ('normal', 'blocked', 'restricted', 'priority')
-        if zona_type not in valid_types:
+        if zone_type not in valid_types:
             msg = f"Error in line {line_num}: invalid zone type"
             raise ValueError(msg)
 
-        # 5. Criação do objeto Zone
         zone_color = metadata.get('color', 'white')
         zone = Zone(
-            name=name_zone,
+            name=zone_name,
             x=x,
             y=y,
             max_drones=final_max,
-            zone_type=zona_type,
+            zone_type=zone_type,
             color=zone_color,
         )
-        self.zones[name_zone] = zone
+        self.zones[zone_name] = zone
 
-        # 6. Atribuição de Hubs Globais
-        if prefix_zone == "start_hub:":
+        if zone_prefix == "start_hub:":
             if self.start_hub:
                 msg = f"Error in line: {line_num}: only one start_hub"
                 raise ValueError(msg)
-            self.start_hub = name_zone
-        elif prefix_zone == "end_hub:":
+            self.start_hub = zone_name
+        elif zone_prefix == "end_hub:":
             if self.end_hub:
                 msg = f"Error in line: {line_num}: only one end_hub"
                 raise ValueError(msg)
-            self.end_hub = name_zone
+            self.end_hub = zone_name
 
     def _parse_connection(
             self, base_line: str, metadata: Dict[str, str],

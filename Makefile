@@ -7,19 +7,28 @@ SRC_DIR = src
 MAIN = $(SRC_DIR)/main.py
 
 # ARGS ?= maps/easy/01_linear_path.txt
-ARGS ?= maps/challenger/01_the_impossible_dream.txt
+# ARGS ?= maps/easy/02_simple_fork.txt
+# ARGS ?= maps/easy/03_basic_capacity.txt
+# ARGS ?= maps/medium/01_dead_end_trap.txt
+# ARGS ?= maps/medium/02_circular_loop.txt
+# ARGS ?= maps/medium/03_priority_puzzle.txt
+# ARGS ?= maps/hard/01_maze_nightmare.txt
+# ARGS ?= maps/hard/02_capacity_hell.txt
+ARGS ?= maps/hard/03_ultimate_challenge.txt
+# ARGS ?= maps/challenger/01_the_impossible_dream.txt
+
 
 all: install
 
 $(VENV_BIN)/activate:
 	@echo "🧪 Creating virtual environment..."
-	python3 -m venv $(VENV_DIR)
+	@python3 -m venv $(VENV_DIR)
 
 install: $(VENV_BIN)/activate
 	@echo "📦 Installing dependencies (mypy, flake8, pygame)..."
-	@$(PIP) install --upgrade pip
-	@$(PIP) install flake8 mypy
-	@$(PIP) install pygame
+	@$(PIP) install --upgrade pip >/dev/null 2>&1
+	@$(PIP) install flake8 mypy >/dev/null 2>&1
+	@$(PIP) install pygame >/dev/null 2>&1
 	@echo "✅ Setup complete."
 
 run:
@@ -34,7 +43,7 @@ lint:
 	@echo "🔍 Checking style (flake8)..."
 	@$(VENV_BIN)/flake8 $(SRC_DIR)
 	@echo "🧪 Checking types (mypy)..."
-	@$(VENV_BIN)/mypy $(SRC_DIR)
+	@$(VENV_BIN)/mypy $(SRC_DIR) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
 	@echo "🛡️ Running MyPy in STRICT mode..."
@@ -43,6 +52,8 @@ lint-strict:
 debug:
 	@echo "🐞 Starting debugger (PDB)..."
 	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
+
+#capacity: python3 src/main.py $(ARGS) --capacity-info
 
 clean:
 	@echo "🧹 Cleaning Python and MyPy cache..."
@@ -53,5 +64,7 @@ clean:
 fclean: clean
 	@echo "🗑️ Removing virtual environment..."
 	@rm -rf $(VENV_DIR)
+
+re: fclean all
 
 .PHONY: all install run visual debug clean fclean lint lint-strict

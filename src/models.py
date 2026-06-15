@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 
 
-@dataclass  # ajuda a criar classes, nao preciso fazer o init
-class Zone:  # ele ja faz automatico
+@dataclass
+class Zone:
     """Representation of a map zone/node.
 
     Attributes:
