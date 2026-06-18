@@ -53,8 +53,6 @@ debug:
 	@echo "🐞 Starting debugger (PDB)..."
 	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
 
-#capacity: python3 src/main.py $(ARGS) --capacity-info
-
 clean:
 	@echo "🧹 Cleaning Python and MyPy cache..."
 	@find . -type d -name "__pycache__" -exec rm -rf {} +

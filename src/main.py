@@ -22,7 +22,6 @@ def main() -> None:
 
     map_path: str = sys.argv[1]
     visual_mode: bool = "--visual" in sys.argv
-    # capacity_mode: bool = "--capacity-info" in sys.argv
 
     try:
         parser = MapParser(map_path)
@@ -31,9 +30,9 @@ def main() -> None:
         if visual_mode:
             from visualizer import Visualizer
             vis = Visualizer(parser.zones)
-            sim.run(visualizer=vis)  # capacity_info=capacity_mode)
+            sim.run(visualizer=vis)
         else:
-            sim.run()  # capacity_info=capacity_mode)
+            sim.run()
 
     except FileNotFoundError:
         print(f"Error: Map file not found at '{map_path}'", file=sys.stderr)
